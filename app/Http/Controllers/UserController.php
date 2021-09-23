@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CustomerRequest;
+use App\Http\Requests\UserRequest;
 use Illuminate\Http\Request;
-use App\Models\Customer;
+use Illuminate\Support\Facades\Hash;
+use App\Http\Requests\UserEditRequest;
+use App\Models\User;
 use Exception;
 
-class CustomerController extends Controller
+class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,8 +18,8 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        $customers = Customer::all();
-        return $customers;
+        $user = User::all();
+        return $user;
     }
 
     /**
@@ -26,11 +28,12 @@ class CustomerController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(CustomerRequest $request)
+    public function store(UserRequest $request)
     {
         $data = $request->all();
-        $customer = Customer::create($data);
-        return response($customer, 201);
+        $data['password'] = Hash::make($data['password']);
+        $user = User::create($data);
+        return response($user, 201);
     }
 
     /**
@@ -41,12 +44,8 @@ class CustomerController extends Controller
      */
     public function show($id)
     {
-        try {
-            $customer = Customer::findOrFail($id);
-            return $customer;
-        } catch(Exception $e) {
-            return response("", 404);
-        }
+        $user = User::find($id);
+        return $user;
     }
 
     /**
@@ -56,13 +55,18 @@ class CustomerController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(CustomerRequest $request, $id)
+    public function update(UserEditRequest $request, $id)
     {
         $data = $request->all();
-        $customer = Customer::find($id);
-        $customer->fill($data);
-        $customer->save();
-        return $customer;
+        if(!empty($data['password'])){
+            $data['password'] = Hash::make($data['password']);
+        }else{
+            unset($data['password']);
+        }
+        $user = User::find($id);
+        $user->fill($data);
+        $user->save();
+        return $user;
     }
 
     /**
@@ -74,9 +78,9 @@ class CustomerController extends Controller
     public function destroy($id)
     {
         try {
-            $customer = Customer::findOrFail($id);
-            $customer->delete();
-            return $customer;
+            $user = User::findOrFail($id);
+            $user->delete();
+            return $user;
         } catch(Exception $e) {
             return response("", 404);
         }
